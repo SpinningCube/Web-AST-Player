@@ -1,113 +1,14 @@
 
+import { ASTHeader } from "./ast-decoder.js";
+
 // Get audio context
 const AudioContext = window.AudioContext || window.webkitAudioContext;
-
-class ASTDecoder {
-    /**
-     * Reads in the provided AST file and sets fields according to the contained properties.
-     * @param {ArrayBuffer} astFile The contents of an AST file
-     */
-    constructor(astFile) {
-        const astData = new Uint8Array(astFile);
-        if (astData.length < 0x40 + 32) {
-            throw new Error("File data is not in AST format; not enough file data to fit entire AST header and beginning of first BLCK chunk");
-        }
-        this.astData = astData
-        // "STRM" = 0x5354524D
-        if (!(astData[0] === 0x53 && astData[1] === 0x54 && astData[2] === 0x52 && astData[3] === 0x4D)) {
-            throw new Error("File data is not in AST format; missing \"STRM\" magic number");
-        }
-        this.dataSizeAccordingToHeader = readBE(astData, 4, 4);
-        this.audioFormat = readBE(astData, 8, 2); // 0 = ADPCM, 1 = PCM16
-        this.bitsPerSample = readBE(astData, 10, 2);
-        this.numChannels = readBE(astData, 12, 2);
-        if (this.numChannels === 0) {
-            throw new Error("Number of audio channels cannot be 0");
-        }
-        this.unknown1 = readBE(astData, 14, 2);
-        this.sampleRate = readBE(astData, 16, 4);
-        this.numSamplesAccordingToHeader = readBE(astData, 20, 4);
-        this.loopStart = readBE(astData, 24, 4);
-        this.loopEnd = readBE(astData, 28, 4);
-        this.firstChunkSize = readBE(astData, 32, 4);
-        this.unknown2 = readBE(astData, 36, 4);
-        this.unknown3 = readBE(astData, 40, 4);
-
-        if (this.audioFormat === 0) {
-            //throw new Error("This file uses ADPCM audio, which is unsupported by this decoder");
-        } else if (this.audioFormat !== 1) {
-            throw new Error("Unrecognized audio format; this decoder only recognizes formats 0 = ADPCM, 1 = PCM16, but this file uses format " + this.audioFormat);
-        }
-        this.chunkStarts = [];
-        this.chunkStartSamples = [];
-        this.chunkSizes = [];
-        
-        this.loopStartChunk = 0;
-        
-        let chunkNum = 0;
-        let sample = 0;
-        let chunkSize = 0;
-        let i = 0x40;
-        while (i < astData.length) {
-            // "BLCK" = 0x424C434B
-            if ((astData.length - i) < 32) {
-                console.warn("Found bytes at expected beginning of next BLCK chunk, but there are not enough to form a complete BLCK chunk header. They will be ignored.");
-                break;
-            }
-            if (!(astData[i] === 0x42 && astData[i + 1] === 0x4C && astData[i + 2] === 0x43 && astData[i + 3] === 0x4B)) {
-                throw new Error("Missing \"BLCK\" magic number where BLCK chunk " + chunkNum + " is expected to start");
-            }
-            i += 4;
-            chunkSize = readBE(astData, i, 4);
-            console.log(chunkSize);
-            if (this.audioFormat === 0 && chunkSize % 9 !== 0) {
-                //throw new Error("Block size not divisible by 9, as required for ADPCM encoded audio");
-            }
-            i += 28;
-            if (this.loopStart >= sample && this.loopStart < sample + chunkSize * 0.5) {
-                this.loopStartChunk = chunkNum;
-            }
-            this.chunkStarts.push(i);
-            this.chunkStartSamples.push(sample);
-            this.chunkSizes.push(chunkSize);
-            if (this.audioFormat === 0) {
-                // ADPCM
-                sample += (chunkSize / 9) * 16;
-            } else {
-                // PCM16
-                sample += chunkSize * 0.5;
-            }
-            i += this.numChannels * chunkSize;
-            chunkNum++;
-        }
-        if (i > astData.length) {
-            const extraBytes = i - astData.length;
-            console.warn("Reached end of file before expected end of block. Expected " + (extraBytes % chunkSize) + " more bytes in this block and " + Math.floor(extraBytes / chunkSize) + " more blocks in this BLCK chunk.\n")
-        }
-        this.numSamples = sample;
-    }
-}
-
-/**
- * Read big-endian value from byte array starting at position
- * @param {number[]} array source array of bytes
- * @param {number} start index of first byte (the most significant byte in the resulting value)
- * @param {number} numBytes number of bytes to read
- * @returns {number} combined value
- */
-function readBE(array, start, numBytes) {
-    const end = start + numBytes;
-    let value = 0;
-    for (let i = start; i < end; i++) {
-        value = (value << 8) + array[i];
-    }
-    return value;
-}
 
 class ASTPlayer {
     constructor(astFile, title) {
         let player = this;
-        this.decodedAST = new ASTDecoder(astFile);
+        this.astData = new Uint8Array(astFile);
+        this.astHeader = new ASTHeader(this.astData);
         this.sample = 0;
         
         if ("mediaSession" in navigator) {
@@ -121,27 +22,26 @@ class ASTPlayer {
                 title: title,
             });
             navigator.mediaSession.setPositionState({
-                duration: player.decodedAST.numSamplesAccordingToHeader / player.decodedAST.sampleRate,
+                duration: player.astHeader.numSamples / player.astHeader.sampleRate,
                 playbackRate: 1,
                 position: 0,
             })
             navigator.mediaSession.setActionHandler("seekto", function(event) {
-                player.setPosition(Math.floor(event.seekTime * player.decodedAST.sampleRate));
+                player.setPosition(Math.floor(event.seekTime * player.astHeader.sampleRate));
             });
             navigator.mediaSession.setActionHandler("play", function() { player.play() });
             navigator.mediaSession.setActionHandler("pause", function() { player.pause() });
             navigator.mediaSession.setActionHandler("previoustrack", function() { player.setPosition(0) });
         }
-
         
-        this.audioContext = new AudioContext({ sampleRate: this.decodedAST.sampleRate });
+        this.audioContext = new AudioContext({ sampleRate: this.astHeader.sampleRate });
         this.gainNode = this.audioContext.createGain();
         this.gainNode.connect(this.audioContext.destination);
         
         // Create an audio worklet
         this.audioProcessor = null;
         this.audioContext.audioWorklet.addModule("ast-audio-processor.js").then(function() {
-            player.audioProcessor = new AudioWorkletNode(player.audioContext, "ast-audio-processor", {processorOptions: {decodedAST: player.decodedAST}, outputChannelCount: [2]});
+            player.audioProcessor = new AudioWorkletNode(player.audioContext, "ast-audio-processor", {processorOptions: {astData: player.astData}, outputChannelCount: [2]});
             player.audioProcessor.connect(player.gainNode);
             player.audioProcessor.port.onmessage = function(message) {
                 switch (message.data.type) {
@@ -156,8 +56,12 @@ class ASTPlayer {
             }
         });
         
-        progressBar.max = this.decodedAST.numSamplesAccordingToHeader;
+        progressBar.max = this.astHeader.numSamples;
         progressBar.value = 0;
+
+        console.log("Loaded " + title);
+        console.log("Sample rate: " + this.astHeader.sampleRate);
+        console.log("Number of channels: " + this.astHeader.numChannels);
 
         this.play();
     }
@@ -188,11 +92,11 @@ class ASTPlayer {
     }
 
     setPosition(sample) {
-        if (sample > this.decodedAST.numSamplesAccordingToHeader) {
+        if (sample > this.astHeader.numSamples) {
             player.finish();
         } else {
-            if (sample === this.decodedAST.loopEnd) {
-                sample = this.decodedAST.loopStart;
+            if (sample === this.astHeader.loopEnd) {
+                sample = this.astHeader.loopStart;
             }
             this.sample = sample;
             this.audioProcessor.port.postMessage({type: "set_position", param: sample});
@@ -202,8 +106,8 @@ class ASTPlayer {
 
     displayPosition() {
         progressBar.value = this.sample;
-        const seconds = this.sample / this.decodedAST.sampleRate;
-        const totalSeconds = this.decodedAST.numSamplesAccordingToHeader / this.decodedAST.sampleRate;
+        const seconds = this.sample / this.astHeader.sampleRate;
+        const totalSeconds = this.astHeader.numSamples / this.astHeader.sampleRate;
         const totalMinutesString = String(Math.floor(totalSeconds / 60));
         progress.textContent = String(Math.floor(seconds / 60)).padStart(totalMinutesString.length, '0') + ":" + String(Math.floor(seconds % 60)).padStart(2, '0') + "." + String(Math.floor((seconds % 1) * 100)).padStart(2, '0');
         progress.textContent += " / " + totalMinutesString + ":" + String(Math.floor(totalSeconds % 60)).padStart(2, '0') + "." + String(Math.floor((totalSeconds % 1) * 100)).padStart(2, '0');
@@ -244,6 +148,9 @@ pauseResumeButton.innerHTML = resumeSVG;
 
 let player = null;
 const progress = document.getElementById("progress");
+
+const fileInput = document.getElementById("ast-file-import");
+fileInput.addEventListener("change", openFile);
 
 function openFile(event) {
     const file = event.target.files[0];
@@ -310,7 +217,7 @@ function makeWav(channelData, sampleRate) {
  * @returns {number[]} Array of bytes in little-endian order.
  */
 function toBytesLE(value, numBytes) {
-    bytes = [];
+    const bytes = [];
     for (let i = 0; i < numBytes; i++) {
         bytes.push(value & 0xFF);
         value >>= 8;

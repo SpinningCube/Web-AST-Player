@@ -6,7 +6,7 @@
         <h1>AST player</h1>
 
         <p>Select an .ast file to play</p>
-        <input type="file" name="fileinput" onchange="openFile(event)">
+        <input type="file" id="ast-file-import">
 
         <div style="margin-top: 15px; margin-bottom: 15px;">
             <input type="range" id="progressbar" min="0" max="1" value="0" style="width: 100%"/>
@@ -21,7 +21,7 @@
             </div>
         </div>
 
-        <script src="ast-player.js"></script>
+        <script src="ast-player.js" type="module"></script>
     </div>
 </body>
 
