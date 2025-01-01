@@ -178,6 +178,27 @@ export class ASTDecoder {
         return this.outputSample;
     }
 
+    getSample() {
+        while (this.decoderSample <= this.outputSample) {
+            if (!this.nextBlock()) {
+                break;
+            }
+        }
+        if (this.outputSample === this.header.loopEnd) {
+            this.outputSample = this.header.loopStart;
+        }
+        const channelSamples = Array(this.header.numChannels);
+        for (let channel = 0; channel < this.header.numChannels; channel++) {
+            if (this.outputSample < this.decodedSamples[channel].length) {
+                channelSamples[channel] = this.decodedSamples[channel][this.outputSample];
+            } else {
+                channelSamples[channel] = 0;
+            }
+        }
+        this.outputSample++;
+        return channelSamples;
+    }
+
     getSamples(numSamples) {
         if (numSamples <= 0) {
             const samples = Array(this.header.numChannels);

@@ -34,7 +34,7 @@ class ASTPlayer {
             navigator.mediaSession.setActionHandler("previoustrack", function() { player.setPosition(0) });
         }
         
-        this.audioContext = new AudioContext({ sampleRate: this.astHeader.sampleRate });
+        this.audioContext = new AudioContext({ sampleRate: this.astHeader.sampleRate, latencyHint: "playback" });
         this.gainNode = this.audioContext.createGain();
         this.gainNode.connect(this.audioContext.destination);
         
