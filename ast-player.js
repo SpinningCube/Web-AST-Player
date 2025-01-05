@@ -14,7 +14,6 @@ audioElement.volume = 0;
 
 class ASTPlayer {
     constructor(astFile, title) {
-        let player = this;
         this.astData = new Uint8Array(astFile);
         this.astHeader = new ASTHeader(this.astData);
         this.sample = 0;
@@ -25,12 +24,12 @@ class ASTPlayer {
             navigator.mediaSession.metadata = new MediaMetadata({
                 title: title,
             });
-            navigator.mediaSession.setActionHandler("seekto", function(event) {
-                player.setPosition(Math.floor(event.seekTime * player.astHeader.sampleRate));
+            navigator.mediaSession.setActionHandler("seekto", (event) => {
+                this.setPosition(Math.floor(event.seekTime * this.astHeader.sampleRate));
             });
-            navigator.mediaSession.setActionHandler("play", function() { player.play() });
-            navigator.mediaSession.setActionHandler("pause", function() { player.pause() });
-            navigator.mediaSession.setActionHandler("previoustrack", function() { player.setPosition(0) });
+            navigator.mediaSession.setActionHandler("play", () => { this.play() });
+            navigator.mediaSession.setActionHandler("pause", () => { this.pause() });
+            navigator.mediaSession.setActionHandler("previoustrack", () => { this.setPosition(0) });
         }
         
         this.audioContext = new AudioContext({ sampleRate: this.astHeader.sampleRate, latencyHint: "playback" });
@@ -39,17 +38,17 @@ class ASTPlayer {
         
         // Create an audio worklet
         this.audioProcessor = null;
-        this.audioContext.audioWorklet.addModule("ast-audio-processor.js").then(function() {
-            player.audioProcessor = new AudioWorkletNode(player.audioContext, "ast-audio-processor", {processorOptions: {astData: player.astData}, outputChannelCount: [2]});
-            player.audioProcessor.connect(player.gainNode);
-            player.audioProcessor.port.onmessage = function(message) {
+        this.audioContext.audioWorklet.addModule("ast-audio-processor.js").then(() => {
+            this.audioProcessor = new AudioWorkletNode(this.audioContext, "ast-audio-processor", {processorOptions: {astData: this.astData}, outputChannelCount: [2]});
+            this.audioProcessor.connect(this.gainNode);
+            this.audioProcessor.port.onmessage = (message) => {
                 switch (message.data.type) {
                     case "finish":
-                        player.finish();
+                        this.finish();
                         break;
                     case "position":
-                        player.sample = message.data.param;
-                        player.displayPosition();
+                        this.sample = message.data.param;
+                        this.displayPosition();
                         break;
                 }
             }
@@ -76,8 +75,8 @@ class ASTPlayer {
                 trackControl.max = 1;
                 trackControl.value = track === 0 ? 1 : 0;
                 trackControl.step = "any";
-                trackControl.addEventListener("input", function(event) {
-                    player.audioProcessor.port.postMessage({type: "set_track_volume", param: {trackNum: track, value: event.target.value}});
+                trackControl.addEventListener("input", (event) => {
+                    this.audioProcessor.port.postMessage({type: "set_track_volume", param: {trackNum: track, value: event.target.value}});
                 });
                 trackElement.appendChild(trackControl);
                 trackList.appendChild(trackElement);
@@ -99,7 +98,7 @@ class ASTPlayer {
     play() {
         this.audioContext.resume();
         pauseResumeButton.innerHTML = pauseSVG;
-        pauseResumeButton.onclick = function() { player.pause() };
+        pauseResumeButton.onclick = () => { this.pause() };
         audioElement.play();
         if ("mediaSession" in navigator) {
             navigator.mediaSession.playbackState = "playing";
@@ -109,7 +108,7 @@ class ASTPlayer {
     pause() {
         this.audioContext.suspend();
         pauseResumeButton.innerHTML = resumeSVG;
-        pauseResumeButton.onclick = function() { player.play() };
+        pauseResumeButton.onclick = () => { this.play() };
         audioElement.pause();
         if ("mediaSession" in navigator) {
             navigator.mediaSession.playbackState = "paused";
@@ -117,13 +116,13 @@ class ASTPlayer {
     }
 
     finish() {
-        player.setPosition(0);
-        player.pause();
+        this.setPosition(0);
+        this.pause();
     }
 
     setPosition(sample) {
         if (sample > this.astHeader.numSamples) {
-            player.finish();
+            this.finish();
         } else {
             if (sample === this.astHeader.loopEnd) {
                 sample = this.astHeader.loopStart;

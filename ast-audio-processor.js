@@ -6,24 +6,23 @@ import { ASTDecoder } from "./ast-decoder.js";
 class ASTAudioProcessor extends AudioWorkletProcessor {
     constructor(options) {
         super();
-        const processor = this; // why do I have to do this
         this.astDecoder = new ASTDecoder(options.processorOptions.astData);
         this.numTracks = Math.floor(this.astDecoder.header.numChannels * 0.5);
         this.trackVolumes = Array(this.numTracks).fill(0);
         this.trackVolumes[0] = 1;
 
-        this.port.onmessage = function(message) {
+        this.port.onmessage = (message) => {
             // Send back the current position whenever requested.
             switch (message.data.type) {
                 case "get_position":
-                    processor.port.postMessage({type: "position", param: processor.astDecoder.getPosition()});
+                    this.port.postMessage({type: "position", param: this.astDecoder.getPosition()});
                     break;
                 case "set_position":
-                    processor.astDecoder.setPosition(+message.data.param);
+                    this.astDecoder.setPosition(+message.data.param);
                     break;
                 case "set_track_volume":
-                    if (message.data.param.trackNum in processor.trackVolumes) {
-                        processor.trackVolumes[message.data.param.trackNum] = Math.max(0, Math.min(message.data.param.value, 1));
+                    if (message.data.param.trackNum in this.trackVolumes) {
+                        this.trackVolumes[message.data.param.trackNum] = Math.max(0, Math.min(message.data.param.value, 1));
                     }
                     break;
             }

@@ -94,12 +94,11 @@ export class ASTDecoder {
         let adpcmOlder;
         let adpcmLastByteWasHeader;
         
-        const decoder = this;
         if (this.header.audioFormat === 0) {
             // ADPCM
-            iter = function(channel, i) {
-                const byte = decoder.astData[i];
-                if (decoder.decoderSample % 16 === 0 && !adpcmLastByteWasHeader) {
+            iter = (channel, i) => {
+                const byte = this.astData[i];
+                if (this.decoderSample % 16 === 0 && !adpcmLastByteWasHeader) {
                     // Read ADPCM header bytes for each channel
                     adpcmShift = byte >>> 4;
                     adpcmFilter = byte & 0b1111;
@@ -108,17 +107,17 @@ export class ASTDecoder {
                     adpcmLastByteWasHeader = false;
                     // Upper nibble
                     const sampleValue1 = adpcmDecode(adpcmShift, adpcmFilter, byte >>> 4, adpcmOld, adpcmOlder);
-                    decoder.decodedSamples[channel].push(sampleValue1);
+                    this.decodedSamples[channel].push(sampleValue1);
                     adpcmOlder = adpcmOld;
                     adpcmOld = sampleValue1;
 
                     // Lower nibble
                     const sampleValue2 = adpcmDecode(adpcmShift, adpcmFilter, byte & 0b1111, adpcmOld, adpcmOlder);
-                    decoder.decodedSamples[channel].push(sampleValue2);
+                    this.decodedSamples[channel].push(sampleValue2);
                     adpcmOlder = adpcmOld;
                     adpcmOld = sampleValue2;
 
-                    decoder.decoderSample += 2;
+                    this.decoderSample += 2;
                 }
                 return i + 1;
             }
@@ -128,10 +127,10 @@ export class ASTDecoder {
                 // I don't want to accept the possibility that a sample can be divided by a chunk boundary
                 throw new Error("Block size not divisible by 2, as required by PCM16 encoding");
             }
-            iter = function(channel, i) {
-                let sampleValue = (decoder.astData[i] << 8) | decoder.astData[i + 1];
+            iter = (channel, i) => {
+                let sampleValue = (this.astData[i] << 8) | this.astData[i + 1];
                 sampleValue -= (sampleValue & 0x8000) << 1;
-                decoder.decodedSamples[channel].push(sampleValue);
+                this.decodedSamples[channel].push(sampleValue);
                 return i + 2;
             }
             this.decoderSample += blockSize * 0.5;
