@@ -4,6 +4,14 @@ import { ASTHeader } from "./ast-decoder.js";
 // Get audio context
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 
+// For the Media Session API, Chrome (and possibly other browsers) requires the
+// existence of a playing audio or video element to show the media session.
+const audioElement = document.createElement("audio");
+const silence = new Uint8Array(makeWav([Array(10000).fill(0)], 10000));
+audioElement.src = URL.createObjectURL(new Blob([silence], {type: 'audio/wav'}));
+audioElement.loop = true;
+audioElement.volume = 0;
+
 class ASTPlayer {
     constructor(astFile, title) {
         let player = this;
@@ -12,20 +20,11 @@ class ASTPlayer {
         this.sample = 0;
         
         if ("mediaSession" in navigator) {
-            // Chrome (and possibly other browsers) requires the existence of a playing audio or video element to show the media session.
-            this.audioElement = document.createElement("audio");
-            const silence = new Uint8Array(makeWav([Array(10000).fill(0)], 10000));
-            this.audioElement.src = URL.createObjectURL(new Blob([silence], {type: 'audio/wav'}));
-            this.audioElement.loop = true;
-            this.audioElement.volume = 0;
+            // Set up Media Session API
+            // This allows the player to use browser and operating system provided media controls.
             navigator.mediaSession.metadata = new MediaMetadata({
                 title: title,
             });
-            navigator.mediaSession.setPositionState({
-                duration: player.astHeader.numSamples / player.astHeader.sampleRate,
-                playbackRate: 1,
-                position: 0,
-            })
             navigator.mediaSession.setActionHandler("seekto", function(event) {
                 player.setPosition(Math.floor(event.seekTime * player.astHeader.sampleRate));
             });
@@ -58,20 +57,51 @@ class ASTPlayer {
         
         progressBar.max = this.astHeader.numSamples;
         progressBar.value = 0;
+        progressBar.disabled = false;
+
+        const numTracks = Math.floor(this.astHeader.numChannels * 0.5);
+        if (numTracks > 1) {
+            // Create track controls
+            trackListContainer.innerHTML = "";
+            trackListContainer.textContent = "Track List";
+            const trackList = document.createElement("ol");
+            trackList.style.listStyle = "none";
+            trackList.style.paddingLeft = "1em";
+            for (let track = 0; track < numTracks; track++) {
+                const trackElement = document.createElement("li");
+                trackElement.textContent = "Track " + (track + 1) + " ";
+                const trackControl = document.createElement("input");
+                trackControl.type = "range";
+                trackControl.min = 0;
+                trackControl.max = 1;
+                trackControl.value = track === 0 ? 1 : 0;
+                trackControl.step = "any";
+                trackControl.addEventListener("input", function(event) {
+                    player.audioProcessor.port.postMessage({type: "set_track_volume", param: {trackNum: track, value: event.target.value}});
+                });
+                trackElement.appendChild(trackControl);
+                trackList.appendChild(trackElement);
+            }
+            trackListContainer.appendChild(trackList);
+        } else {
+            // If there is only one track, there is no need to provide individual track controls
+            trackListContainer.innerHTML = "";
+        }
 
         console.log("Loaded " + title);
         console.log("Sample rate: " + this.astHeader.sampleRate);
         console.log("Number of channels: " + this.astHeader.numChannels);
 
         this.play();
+        this.displayPosition();
     }
 
     play() {
         this.audioContext.resume();
         pauseResumeButton.innerHTML = pauseSVG;
         pauseResumeButton.onclick = function() { player.pause() };
+        audioElement.play();
         if ("mediaSession" in navigator) {
-            this.audioElement.play();
             navigator.mediaSession.playbackState = "playing";
         }
     }
@@ -80,8 +110,8 @@ class ASTPlayer {
         this.audioContext.suspend();
         pauseResumeButton.innerHTML = resumeSVG;
         pauseResumeButton.onclick = function() { player.play() };
+        audioElement.pause();
         if ("mediaSession" in navigator) {
-            this.audioElement.pause();
             navigator.mediaSession.playbackState = "paused";
         }
     }
@@ -149,11 +179,17 @@ pauseResumeButton.innerHTML = resumeSVG;
 let player = null;
 const progress = document.getElementById("progress");
 
+const trackListContainer = document.getElementById("track-list-container");
+
 const fileInput = document.getElementById("ast-file-import");
 fileInput.addEventListener("change", openFile);
 
 function openFile(event) {
-    const file = event.target.files[0];
+    const fileList = event.target.files;
+    if (fileList.length === 0) {
+        return;
+    }
+    const file = fileList[0];
     const reader = new FileReader();
     reader.onload = function() {
         if (player != null) {
@@ -165,12 +201,11 @@ function openFile(event) {
     reader.readAsArrayBuffer(file);
 }
 
-function perFrame() {
+setInterval(function() {
     if (player != null) {
         player?.audioProcessor?.port?.postMessage({type: "get_position"});
     }
-}
-setInterval(perFrame, 10);
+}, 10);
 
 /**
  * Encode audio channels into WAV format.

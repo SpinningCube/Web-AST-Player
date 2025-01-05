@@ -8,6 +8,9 @@ class ASTAudioProcessor extends AudioWorkletProcessor {
         super();
         const processor = this; // why do I have to do this
         this.astDecoder = new ASTDecoder(options.processorOptions.astData);
+        this.numTracks = Math.floor(this.astDecoder.header.numChannels * 0.5);
+        this.trackVolumes = Array(this.numTracks).fill(0);
+        this.trackVolumes[0] = 1;
 
         this.port.onmessage = function(message) {
             // Send back the current position whenever requested.
@@ -18,8 +21,13 @@ class ASTAudioProcessor extends AudioWorkletProcessor {
                 case "set_position":
                     processor.astDecoder.setPosition(+message.data.param);
                     break;
+                case "set_track_volume":
+                    if (message.data.param.trackNum in processor.trackVolumes) {
+                        processor.trackVolumes[message.data.param.trackNum] = Math.max(0, Math.min(message.data.param.value, 1));
+                    }
+                    break;
             }
-        }
+        };
     }
 
     process(inputs, outputs, parameters) {
@@ -47,13 +55,17 @@ class ASTAudioProcessor extends AudioWorkletProcessor {
         for (let sample = 0; sample < outputLength; sample++) {
             const samples = this.astDecoder.getSample();
             for (let channel = 0; channel < Math.min(2, outputs[0].length); channel++) {
-                // Convert from 16-bit signed int to the -1 to 1 floating point range.
-                let sampleValue = samples[channel] / 32767;
-
-                // Can't be too careful
-                sampleValue = Math.max(-1, Math.min(sampleValue, 1));
-
-                outputs[0][channel][sample] = sampleValue;
+                let finalSample = 0;
+                for (let track = 0; track < this.numTracks; track++) {
+                    // Convert from 16-bit signed int to the -1 to 1 floating point range.
+                    let sampleValue = samples[2 * track + channel] / 32767;
+    
+                    // Can't be too careful
+                    sampleValue = Math.max(-1, Math.min(sampleValue, 1));
+                    
+                    finalSample += sampleValue * this.trackVolumes[track];
+                }
+                outputs[0][channel][sample] = finalSample;
             }
         }
         return true;
