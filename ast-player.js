@@ -76,7 +76,7 @@ class ASTPlayer {
                 trackControl.value = track === 0 ? 1 : 0;
                 trackControl.step = "any";
                 trackControl.addEventListener("input", (event) => {
-                    this.audioProcessor.port.postMessage({type: "set_track_volume", param: {trackNum: track, value: event.target.value}});
+                    this.audioProcessor?.port.postMessage({type: "set_track_volume", param: {trackNum: track, value: event.target.value}});
                 });
                 trackElement.appendChild(trackControl);
                 trackList.appendChild(trackElement);
@@ -128,7 +128,7 @@ class ASTPlayer {
                 sample = this.astHeader.loopStart;
             }
             this.sample = sample;
-            this.audioProcessor.port.postMessage({type: "set_position", param: sample});
+            this.audioProcessor?.port.postMessage({type: "set_position", param: sample});
         }
         this.displayPosition();
     }
@@ -202,7 +202,7 @@ function openFile(event) {
 
 setInterval(function() {
     if (player != null) {
-        player?.audioProcessor?.port?.postMessage({type: "get_position"});
+        player.audioProcessor?.port.postMessage({type: "get_position"});
     }
 }, 10);
 

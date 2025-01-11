@@ -62,12 +62,6 @@ export class ASTDecoder {
         this.adpcmOld = Array(this.header.numChannels).fill(0);
         this.adpcmOlder = Array(this.header.numChannels).fill(0);
         this.adpcmLastByteWasHeader = Array(this.header.numChannels).fill(false);
-        
-        for (let i = 0; i < 100; i++) {
-            if (!this.nextBlock()) {
-                break;
-            }
-        }
     }
 
     nextBlock() {
