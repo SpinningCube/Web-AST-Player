@@ -21,6 +21,10 @@ body {
     display: inline-block;
 }
 
+.ast-pause-resume:disabled {
+    opacity: 25%;
+}
+
 .ast-pause-resume:enabled:hover {
     background-color: #00000020;
 }

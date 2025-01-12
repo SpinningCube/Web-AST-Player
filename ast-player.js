@@ -27,9 +27,9 @@ class ASTPlayer {
             navigator.mediaSession.setActionHandler("seekto", (event) => {
                 this.setPosition(Math.floor(event.seekTime * this.astHeader.sampleRate));
             });
-            navigator.mediaSession.setActionHandler("play", () => { this.play() });
-            navigator.mediaSession.setActionHandler("pause", () => { this.pause() });
-            navigator.mediaSession.setActionHandler("previoustrack", () => { this.setPosition(0) });
+            navigator.mediaSession.setActionHandler("play", () => this.play());
+            navigator.mediaSession.setActionHandler("pause", () => this.pause());
+            navigator.mediaSession.setActionHandler("previoustrack", () => this.restart());
         }
         
         this.audioContext = new AudioContext({ sampleRate: this.astHeader.sampleRate, latencyHint: "playback" });
@@ -59,12 +59,13 @@ class ASTPlayer {
         progressBar.disabled = false;
 
         pauseResumeButton.disabled = false;
+        restartButton.disabled = false;
+        restartButton.onclick = () => this.restart();
 
         const numTracks = Math.floor(this.astHeader.numChannels * 0.5);
         if (numTracks > 1) {
             // Create track controls
-            trackListContainer.innerHTML = "";
-            trackListContainer.textContent = "Track List";
+            trackListContainer.innerHTML = "<b>Tracks</b>";
             const trackList = document.createElement("ol");
             trackList.classList.add("track-list");
             for (let track = 0; track < numTracks; track++) {
@@ -100,7 +101,7 @@ class ASTPlayer {
     play() {
         this.audioContext.resume();
         pauseResumeButton.innerHTML = pauseSVG;
-        pauseResumeButton.onclick = () => { this.pause() };
+        pauseResumeButton.onclick = () => this.pause();
         audioElement.play();
         if ("mediaSession" in navigator) {
             navigator.mediaSession.playbackState = "playing";
@@ -110,11 +111,15 @@ class ASTPlayer {
     pause() {
         this.audioContext.suspend();
         pauseResumeButton.innerHTML = resumeSVG;
-        pauseResumeButton.onclick = () => { this.play() };
+        pauseResumeButton.onclick = () => this.play();
         audioElement.pause();
         if ("mediaSession" in navigator) {
             navigator.mediaSession.playbackState = "paused";
         }
+    }
+
+    restart() {
+        this.setPosition(0);
     }
 
     finish() {
@@ -170,12 +175,13 @@ volumeInput.addEventListener("input", function(event) {
 const pauseResumeButton = document.getElementById("pause-resume");
 const resumeSVG = `<svg width="35px" height="35px" viewbox="-100 -100 200 200">
         <polygon points="75,0 -75,86 -75,-86"/>
-    </svg>`
+    </svg>`;
 const pauseSVG = `<svg width="35px" height="35px" viewbox="-100 -100 200 200">
         <rect x="-75" y="-75" width="50" height="150"/>
         <rect x="25" y="-75" width="50" height="150"/>
-    </svg>`
+    </svg>`;
 pauseResumeButton.innerHTML = resumeSVG;
+const restartButton = document.getElementById("restart");
 
 let player = null;
 const progress = document.getElementById("progress");
