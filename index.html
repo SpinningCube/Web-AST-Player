@@ -4,31 +4,34 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AST player</title>
+    <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
     <div style="margin: auto; width: 60%; max-width: 600px">
         <h1>AST player</h1>
 
-        <div style="margin-top: 8px; margin-bottom: 8px;">
+        <div class="ast-control-container">
             Select an .ast file to play
         </div>
     
-        <input type="file" id="ast-file-import" style="margin-top: 8px; margin-bottom: 8px;">
+        <div class="ast-control-container">
+            <input type="file" id="ast-file-import" accept=".ast">
+        </div>
 
-        <div style="margin-top: 8px; margin-bottom: 8px;">
-            <input type="range" id="progressbar" min="0" max="1" value="0" disabled style="width: 100%"/>
+        <div class="ast-control-container">
+            <input type="range" id="progressbar" min="0" max="1" value="0" disabled class="ast-progress-bar"/>
             <div id="progress">0:00.00 / 0:00.00</div>
         </div>
 
-        <div style="margin-top: 8px; margin-bottom: 8px;">
-            <button id="pause-resume" style="all: initial; width: 40px; height: 40px; padding: 10px; display: inline-block"></button>
+        <div class="ast-control-container">
+            <button id="pause-resume" disabled class="ast-pause-resume"></button>
             <div style="margin-left: 20px; margin-right: 20px; display: inline-block">
-                <div>Volume: </div>
+                <div>Volume</div>
                 <input type="range" id="volume" min="0" max="1" value="1" step="any"/>
             </div>
         </div>
 
-        <div id="track-list-container" style="margin-top: 8px; margin-bottom: 8px;"></div>
+        <div id="track-list-container" class="ast-control-container"></div>
 
         <script src="ast-player.js" type="module"></script>
     </div>

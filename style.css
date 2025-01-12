@@ -1,0 +1,41 @@
+body {
+    font-family: 'Trebuchet MS', Arial, sans-serif;
+}
+
+.ast-control-container {
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+
+.ast-progress-bar {
+    width: 100%;
+    margin: 0;
+}
+
+.ast-pause-resume {
+    all: initial;
+    width: 35px;
+    height: 35px;
+    padding: 10px;
+    border-radius: 10%;
+    display: inline-block;
+}
+
+.ast-pause-resume:enabled:hover {
+    background-color: #00000020;
+}
+
+.ast-pause-resume:enabled:active {
+    background-color: #00000040;
+}
+
+.track-list {
+    list-style: none;
+    padding-left: 1em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.track-volume-control {
+    vertical-align: middle;
+}

@@ -58,14 +58,15 @@ class ASTPlayer {
         progressBar.value = 0;
         progressBar.disabled = false;
 
+        pauseResumeButton.disabled = false;
+
         const numTracks = Math.floor(this.astHeader.numChannels * 0.5);
         if (numTracks > 1) {
             // Create track controls
             trackListContainer.innerHTML = "";
             trackListContainer.textContent = "Track List";
             const trackList = document.createElement("ol");
-            trackList.style.listStyle = "none";
-            trackList.style.paddingLeft = "1em";
+            trackList.classList.add("track-list");
             for (let track = 0; track < numTracks; track++) {
                 const trackElement = document.createElement("li");
                 trackElement.textContent = "Track " + (track + 1) + " ";
@@ -75,6 +76,7 @@ class ASTPlayer {
                 trackControl.max = 1;
                 trackControl.value = track === 0 ? 1 : 0;
                 trackControl.step = "any";
+                trackControl.classList.add("track-volume-control");
                 trackControl.addEventListener("input", (event) => {
                     this.audioProcessor?.port.postMessage({type: "set_track_volume", param: {trackNum: track, value: event.target.value}});
                 });
@@ -166,10 +168,10 @@ volumeInput.addEventListener("input", function(event) {
 });
 
 const pauseResumeButton = document.getElementById("pause-resume");
-const resumeSVG = `<svg width="40px" height="40px" viewbox="-100 -100 200 200">
-        <polygon points="100,0 -50,86 -50,-86"/>
+const resumeSVG = `<svg width="35px" height="35px" viewbox="-100 -100 200 200">
+        <polygon points="75,0 -75,86 -75,-86"/>
     </svg>`
-const pauseSVG = `<svg width="40px" height="40px" viewbox="-100 -100 200 200">
+const pauseSVG = `<svg width="35px" height="35px" viewbox="-100 -100 200 200">
         <rect x="-75" y="-75" width="50" height="150"/>
         <rect x="25" y="-75" width="50" height="150"/>
     </svg>`
