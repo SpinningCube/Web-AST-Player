@@ -15,22 +15,22 @@
         </div>
     
         <div class="ast-control-container">
-            <input type="file" id="ast-file-import" accept=".ast">
+            <input type="file" id="ast-file-import" autocomplete="off" accept=".ast">
         </div>
 
         <div class="ast-control-container">
-            <input type="range" id="progressbar" min="0" max="1" value="0" disabled class="ast-progress-bar"/>
+            <input type="range" id="progressbar" min="0" max="1" value="0" disabled autocomplete="off" class="ast-progress-bar"/>
             <div id="progress">0:00.00 / 0:00.00</div>
         </div>
 
         <div class="ast-control-container">
-            <button id="restart" disabled class="ast-pause-resume">
+            <button id="restart" disabled autocomplete="off" class="ast-pause-resume">
                 <svg width="35px" height="35px" viewbox="-130 -130 260 260">
                     <polygon points="-75,0 75,86 75,-86"/>
                     <rect x="-75" y="-86" width="25" height="172"/>
                 </svg>
             </button>
-            <button id="pause-resume" disabled class="ast-pause-resume"></button>
+            <button id="pause-resume" disabled autocomplete="off" class="ast-pause-resume"></button>
             <div style="margin-left: 20px; margin-right: 20px; display: inline-block">
                 <div>Volume</div>
                 <input type="range" id="volume" min="0" max="1" value="1" step="any"/>
