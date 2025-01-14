@@ -53,6 +53,8 @@ export class ASTDecoder {
         }
         this.decoderPosition = 0x40;
         this.decoderSample = 0;
+        this.decoderFinished = false;
+        this.decoderEndSample = 0;
         this.outputSample = 0;
         this.numChunks = 0;
         
@@ -65,17 +67,24 @@ export class ASTDecoder {
     }
 
     nextBlock() {
+        if (this.decoderFinished) {
+            return false;
+        }
         if (this.decoderPosition >= this.astData.length) {
+            this.decoderFinished = true;
             return false;
         }
         let i = this.decoderPosition;
         if ((this.astData.length - i) < 32) {
-            console.warn("Found bytes at expected beginning of next BLCK chunk, but there are not enough to form a complete BLCK chunk header. They will be ignored.");
+            this.decoderError("Found bytes at expected beginning of next BLCK chunk, but there are not enough remaining to form a complete BLCK chunk header. They will be ignored.");
+            this.decoderFinished = true;
             return false;
         }
         // "BLCK" = 0x424C434B
         if (!(this.astData[i] === 0x42 && this.astData[i + 1] === 0x4C && this.astData[i + 2] === 0x43 && this.astData[i + 3] === 0x4B)) {
-            throw new Error("Missing \"BLCK\" magic number where BLCK chunk " + this.numChunks + " is expected to start");
+            this.decoderError("Missing \"BLCK\" magic number where BLCK chunk " + this.numChunks + " is expected to start. Remaining bytes will be ignored.");
+            this.decoderFinished = true;
+            return false;
         }
         i += 4;
         const blockSize = readBE(this.astData, i, 4);
@@ -119,7 +128,9 @@ export class ASTDecoder {
             // PCM16
             if (blockSize % 2 != 0) {
                 // I don't want to accept the possibility that a sample can be divided by a chunk boundary
-                throw new Error("Block size not divisible by 2, as required by PCM16 encoding");
+                this.decoderError("Block size not divisible by 2, as required by PCM16 encoding. Remaining bytes will be ignored.");
+                this.decoderFinished = true;
+                return false;
             }
             iter = (channel, i) => {
                 let sampleValue = (this.astData[i] << 8) | this.astData[i + 1];
@@ -144,7 +155,13 @@ export class ASTDecoder {
             while (i < blockEnd) {
                 if (i >= this.astData.length) {
                     const extraBytes = (chunkStart + this.header.numChannels * blockSize) - this.astData.length;
-                    console.warn("Reached end of file before expected end of block. Expected " + (extraBytes % blockSize) + " more bytes in this block and " + Math.floor(extraBytes / blockSize) + " more blocks in this BLCK chunk.\n");
+                    if (Math.floor(extraBytes / blockSize) > 0) {
+                        this.decoderError("Reached end of file before expected end of block. Expected " + (extraBytes % blockSize) + " more bytes in block and " + Math.floor(extraBytes / blockSize) + " more blocks in BLCK chunk.\n");
+                    } else {
+                        this.decoderError("Reached end of file before expected end of block. Expected " + (extraBytes % blockSize) + " more bytes in block.");
+                    }
+                    this.decoderEndSample = this.decodedSamples[this.decodedSamples.length - 1].length;
+                    this.decoderFinished = true;
                     return false;
                 }
                 i = iter(channel, i);
@@ -160,7 +177,13 @@ export class ASTDecoder {
         //console.log("Decoded block " + this.numChunks);
         this.numChunks++;
         this.decoderPosition = i;
+        this.decoderEndSample = this.decodedSamples[this.decodedSamples.length - 1].length;
         return true;
+    }
+
+    decoderError(message) {
+        message = "Decoding Error: " + message;
+        console.error(message);
     }
 
     setPosition(sample) {
@@ -177,8 +200,8 @@ export class ASTDecoder {
                 break;
             }
         }
-        if (this.outputSample === this.header.loopEnd) {
-            this.outputSample = this.header.loopStart;
+        if (this.outputSample === this.header.loopEnd || this.outputSample >= this.decoderEndSample) {
+            this.outputSample = (this.header.loopStart < this.decoderEndSample) ? this.header.loopStart : 0;
         }
         const channelSamples = Array(this.header.numChannels);
         for (let channel = 0; channel < this.header.numChannels; channel++) {
@@ -202,16 +225,20 @@ export class ASTDecoder {
         }
         
         const endSample = this.outputSample + numSamples;
-        while (this.decoderSample < endSample) {
+        while (endSample > this.decoderEndSample) {
             if (!this.nextBlock()) {
                 break;
             }
         }
-        if (this.outputSample <= this.header.loopEnd && endSample > this.header.loopEnd) {
+        let loopEnd = this.header.loopEnd;
+        if ((this.outputSample <= loopEnd && endSample > loopEnd) || endSample > this.decoderEndSample) {
+            if (endSample <= loopEnd) {
+                loopEnd = this.decoderEndSample;
+            }
             // If the range contains the loop point, split it into two contiguous ranges
-            const samples = this.getSamples(this.header.loopEnd - this.outputSample);
-            this.outputSample = this.header.loopStart;
-            const samples2 = this.getSamples(endSample - this.header.loopEnd);
+            const samples = this.getSamples(loopEnd - this.outputSample);
+            this.outputSample = (this.header.loopStart < this.decoderEndSample) ? this.header.loopStart : 0;
+            const samples2 = this.getSamples(endSample - loopEnd);
             for (let channel = 0; channel < this.header.numChannels; channel++) {
                 samples[channel].push(...samples2[channel]);
             }
