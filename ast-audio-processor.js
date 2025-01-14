@@ -31,27 +31,27 @@ class ASTAudioProcessor extends AudioWorkletProcessor {
 
     process(inputs, outputs, parameters) {
         let outputLength = outputs[0][0].length;
-        /*const start = this.astDecoder.getPosition();
+        //const start = this.astDecoder.getPosition();
         const samples = this.astDecoder.getSamples(outputLength);
-        const destination = this.astDecoder.getPosition();
-        this.astDecoder.setPosition(start); 
+        //const destination = this.astDecoder.getPosition();
+        //this.astDecoder.setPosition(start); 
         for (let channel = 0; channel < Math.min(2, outputs[0].length); channel++) {
-            let sample = 0;
-            for (; sample < samples[channel].length; sample++) {
-                // Convert from 16-bit signed int to the -1 to 1 floating point range.
-                let sampleValue = samples[channel][sample] / 32767;
+            for (let sample = 0; sample < samples[channel].length; sample++) {
+                let finalSample = 0;
+                for (let track = 0; track < this.numTracks; track++) {
+                    // Convert from 16-bit signed int to the -1 to 1 floating point range.
+                    let sampleValue = samples[2 * track + channel][sample] / 32767;
 
-                // Can't be too careful
-                sampleValue = Math.max(-1, Math.min(sampleValue, 1));
+                    // Can't be too careful
+                    sampleValue = Math.max(-1, Math.min(sampleValue, 1));
 
-                outputs[0][channel][sample] = sampleValue;
-            }
-            for (; sample < outputLength; sample++) {
-                outputs[0][channel][sample] = 0;
+                    finalSample += sampleValue * this.trackVolumes[track];
+                }
+                outputs[0][channel][sample] = finalSample;
             }
         }
-        this.astDecoder.setPosition(destination);*/
-        for (let sample = 0; sample < outputLength; sample++) {
+        //this.astDecoder.setPosition(destination);
+        /*for (let sample = 0; sample < outputLength; sample++) {
             const samples = this.astDecoder.getSample();
             for (let channel = 0; channel < Math.min(2, outputs[0].length); channel++) {
                 let finalSample = 0;
@@ -66,7 +66,7 @@ class ASTAudioProcessor extends AudioWorkletProcessor {
                 }
                 outputs[0][channel][sample] = finalSample;
             }
-        }
+        }*/
         return true;
     }
 }
