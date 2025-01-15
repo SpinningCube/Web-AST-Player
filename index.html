@@ -13,7 +13,7 @@
         <div class="ast-control-container">
             Select an .ast file to play
         </div>
-    
+
         <div class="ast-control-container">
             <input type="file" id="ast-file-import" autocomplete="off" accept=".ast">
         </div>
@@ -23,17 +23,28 @@
             <div id="progress">0:00.00 / 0:00.00</div>
         </div>
 
-        <div class="ast-control-container">
-            <button id="restart" disabled autocomplete="off" class="ast-pause-resume">
-                <svg width="35px" height="35px" viewbox="-130 -130 260 260">
+        <div class="ast-control-container" style="display: flex; flex-direction: row; gap: 10px">
+            <button id="restart" disabled autocomplete="off" class="square-button" style="width: 55px; height: 55px">
+                <svg width="55px" height="55px" viewbox="-200 -200 400 400">
                     <polygon points="-75,0 75,86 75,-86"/>
                     <rect x="-75" y="-86" width="25" height="172"/>
                 </svg>
             </button>
-            <button id="pause-resume" disabled autocomplete="off" class="ast-pause-resume"></button>
-            <div style="margin-left: 20px; margin-right: 20px; display: inline-block">
-                <div>Volume</div>
-                <input type="range" id="volume" min="0" max="1" value="1" step="any"/>
+            <button id="pause-resume" disabled autocomplete="off" class="square-button" style="width: 55px; height: 55px"></button>
+            <div style="display: flex; flex-direction: row; gap: 8px">
+                <button id="mute" class="square-button" style="width: 35px; height: 35px; margin: auto">
+                    <svg width="35px" height="35px" viewBox="-15 -15 30 30">
+                        <g stroke="black" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
+                            <polygon points="-10,-2 -7,-2 -3,-6 -3,6 -7,2 -10,2"/>
+                            <g fill="none">
+                                <path d=" M 0.8 -3.55 A 6 6 0 0 1 0.8 3.55"/>
+                                <path d=" M 4 -5.95 A 10 10 0 0 1 4 5.95"/>
+                                <path d=" M 7.2 -8.35 A 14 14 0 0 1 7.2 8.35"/>
+                            </g>
+                        </g>
+                    </svg>
+                </button>
+                <input type="range" id="volume" class="volume-control" min="0" max="1" value="1" step="any"/>
             </div>
         </div>
 

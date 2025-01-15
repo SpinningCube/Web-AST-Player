@@ -12,25 +12,25 @@ body {
     margin: 0;
 }
 
-.ast-pause-resume {
+.square-button {
     all: initial;
-    width: 35px;
-    height: 35px;
-    padding: 10px;
     border-radius: 10%;
-    display: inline-block;
 }
 
-.ast-pause-resume:disabled {
+.square-button:disabled {
     opacity: 25%;
 }
 
-.ast-pause-resume:enabled:hover {
+.square-button:enabled:hover {
     background-color: #00000020;
 }
 
-.ast-pause-resume:enabled:active {
+.square-button:enabled:active {
     background-color: #00000040;
+}
+
+.volume-control {
+    vertical-align: middle;
 }
 
 .track-list {
@@ -38,8 +38,4 @@ body {
     padding-left: 1em;
     margin-top: 0.5em;
     margin-bottom: 0.5em;
-}
-
-.track-volume-control {
-    vertical-align: middle;
 }

@@ -77,7 +77,7 @@ class ASTPlayer {
                 trackControl.max = 1;
                 trackControl.value = track === 0 ? 1 : 0;
                 trackControl.step = "any";
-                trackControl.classList.add("track-volume-control");
+                trackControl.classList.add("volume-control");
                 trackControl.addEventListener("input", (event) => {
                     this.audioProcessor?.port.postMessage({type: "set_track_volume", param: {trackNum: track, value: event.target.value}});
                 });
@@ -162,28 +162,66 @@ class ASTPlayer {
     }
 }
 
+let muted = false;
+let player = null;
+
 const progressBar = document.getElementById("progressbar");
 progressBar.addEventListener("input", function(event) {
-    player.setPosition(event.target.value);
+    player?.setPosition(event.target.value);
 });
 
 const volumeInput = document.getElementById("volume");
 volumeInput.addEventListener("input", function(event) {
-    player.setVolume(event.target.value);
+    player?.setVolume(muted ? 0 : event.target.value);
 });
 
 const pauseResumeButton = document.getElementById("pause-resume");
-const resumeSVG = `<svg width="35px" height="35px" viewbox="-100 -100 200 200">
-        <polygon points="75,0 -75,86 -75,-86"/>
-    </svg>`;
-const pauseSVG = `<svg width="35px" height="35px" viewbox="-100 -100 200 200">
-        <rect x="-75" y="-75" width="50" height="150"/>
-        <rect x="25" y="-75" width="50" height="150"/>
-    </svg>`;
+const resumeSVG = `<svg width="55px" height="55px" viewbox="-150 -150 300 300">
+                       <polygon points="75,0 -75,86 -75,-86"/>
+                   </svg>`;
+const pauseSVG = `<svg width="55px" height="55px" viewbox="-150 -150 300 300">
+                      <rect x="-75" y="-75" width="50" height="150"/>
+                      <rect x="25" y="-75" width="50" height="150"/>
+                  </svg>`;
 pauseResumeButton.innerHTML = resumeSVG;
 const restartButton = document.getElementById("restart");
 
-let player = null;
+const muteButton = document.getElementById("mute");
+const unmutedSVG = `<svg width="35px" height="35px" viewBox="-15 -15 30 30">
+                        <g stroke="black" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
+                            <polygon points="-10,-2 -7,-2 -3,-6 -3,6 -7,2 -10,2" />
+                            <g fill="none">
+                                <path d=" M 0.8 -3.55 A 6 6 0 0 1 0.8 3.55" />
+                                <path d=" M 4 -5.95 A 10 10 0 0 1 4 5.95" />
+                                <path d=" M 7.2 -8.35 A 14 14 0 0 1 7.2 8.35" />
+                            </g>
+                        </g>
+                    </svg>`;
+const mutedSVG = `<svg width="35px" height="35px" viewBox="-15 -15 30 30">
+                      <g stroke="black" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
+                          <polygon points="-10,-2 -7,-2 -3,-6 -3,6 -7,2 -10,2" />
+                          <g fill="none">
+                                <path d=" M 0.8 -3.55 A 6 6 0 0 1 0.8 3.55" />
+                                <path d=" M 4 -5.95 A 10 10 0 0 1 4 5.95" />
+                                <path d=" M 7.2 -8.35 A 14 14 0 0 1 7.2 8.35" />
+                            </g>
+                          <line x1="-10" y1="7" x2="10" y2="-7" />
+                      </g>
+                  </svg>`;
+// <line x1="-13" y1="-8" x2="3" y2="8" />
+
+muteButton.addEventListener("click", function() {
+    if (muted) {
+        muted = false;
+        player?.setVolume(volumeInput.value);
+        muteButton.innerHTML = unmutedSVG;
+    } else {
+        muted = true;
+        player?.setVolume(0);
+        muteButton.innerHTML = mutedSVG;
+    }
+});
+
 const progress = document.getElementById("progress");
 
 const trackListContainer = document.getElementById("track-list-container");
@@ -204,6 +242,7 @@ function openFile(event) {
             player.audioContext.close();
         }
         player = new ASTPlayer(reader.result, file.name);
+        player.setVolume(muted ? 0 : volumeInput.value);
     };
     reader.readAsArrayBuffer(file);
 }
