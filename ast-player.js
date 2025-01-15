@@ -63,6 +63,8 @@ class ASTPlayer {
         restartButton.onclick = () => this.restart();
 
         const numTracks = Math.floor(this.astHeader.numChannels * 0.5);
+        this.tracksMuted = Array(numTracks).fill(true);
+        this.tracksMuted[0] = false;
         if (numTracks > 1) {
             // Create track controls
             trackListContainer.innerHTML = "<b>Tracks</b>";
@@ -70,18 +72,45 @@ class ASTPlayer {
             trackList.classList.add("track-list");
             for (let track = 0; track < numTracks; track++) {
                 const trackElement = document.createElement("li");
-                trackElement.textContent = "Track " + (track + 1) + " ";
-                const trackControl = document.createElement("input");
-                trackControl.type = "range";
-                trackControl.min = 0;
-                trackControl.max = 1;
-                trackControl.value = track === 0 ? 1 : 0;
-                trackControl.step = "any";
-                trackControl.classList.add("volume-control");
-                trackControl.addEventListener("input", (event) => {
-                    this.audioProcessor?.port.postMessage({type: "set_track_volume", param: {trackNum: track, value: event.target.value}});
+                trackElement.textContent = "Track " + (track + 1);
+                const trackVolumeContainer = document.createElement("div");
+                trackVolumeContainer.classList.add("volume-control-container");
+                
+                const trackMuteButton = document.createElement("button");
+                trackMuteButton.classList.add("square-button");
+                trackMuteButton.style.width = "35px";
+                trackMuteButton.style.height = "35px";
+                trackMuteButton.innerHTML = this.tracksMuted[track] ? mutedSVG : unmutedSVG;
+                trackVolumeContainer.appendChild(trackMuteButton);
+
+                const trackVolumeSlider = document.createElement("input");
+                trackVolumeSlider.type = "range";
+                trackVolumeSlider.min = 0;
+                trackVolumeSlider.max = 1;
+                trackVolumeSlider.value = 1;
+                trackVolumeSlider.step = "any";
+                trackVolumeSlider.classList.add("volume-control");
+                trackVolumeContainer.appendChild(trackVolumeSlider);
+                
+                const setTrackVolume = (volume) => {
+                    this.audioProcessor?.port.postMessage({type: "set_track_volume", param: {trackNum: track, value: volume}});
+                }
+                trackMuteButton.addEventListener("click", (event) => {
+                    if (this.tracksMuted[track]) {
+                        this.tracksMuted[track] = false;
+                        setTrackVolume(trackVolumeSlider.value);
+                        trackMuteButton.innerHTML = unmutedSVG;
+                    } else {
+                        this.tracksMuted[track] = true;
+                        setTrackVolume(0);
+                        trackMuteButton.innerHTML = mutedSVG;
+                    }
+                })
+                trackVolumeSlider.addEventListener("input", (event) => {
+                    setTrackVolume(this.tracksMuted[track] ? 0 : event.target.value);
                 });
-                trackElement.appendChild(trackControl);
+                
+                trackElement.appendChild(trackVolumeContainer);
                 trackList.appendChild(trackElement);
             }
             trackListContainer.appendChild(trackList);
@@ -176,10 +205,10 @@ volumeInput.addEventListener("input", function(event) {
 });
 
 const pauseResumeButton = document.getElementById("pause-resume");
-const resumeSVG = `<svg width="55px" height="55px" viewbox="-150 -150 300 300">
+const resumeSVG = `<svg viewbox="-150 -150 300 300">
                        <polygon points="75,0 -75,86 -75,-86"/>
                    </svg>`;
-const pauseSVG = `<svg width="55px" height="55px" viewbox="-150 -150 300 300">
+const pauseSVG = `<svg viewbox="-150 -150 300 300">
                       <rect x="-75" y="-75" width="50" height="150"/>
                       <rect x="25" y="-75" width="50" height="150"/>
                   </svg>`;
@@ -187,7 +216,7 @@ pauseResumeButton.innerHTML = resumeSVG;
 const restartButton = document.getElementById("restart");
 
 const muteButton = document.getElementById("mute");
-const unmutedSVG = `<svg width="35px" height="35px" viewBox="-15 -15 30 30">
+const unmutedSVG = `<svg viewBox="-15 -15 30 30">
                         <g stroke="black" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
                             <polygon points="-10,-2 -7,-2 -3,-6 -3,6 -7,2 -10,2" />
                             <g fill="none">
@@ -197,7 +226,7 @@ const unmutedSVG = `<svg width="35px" height="35px" viewBox="-15 -15 30 30">
                             </g>
                         </g>
                     </svg>`;
-const mutedSVG = `<svg width="35px" height="35px" viewBox="-15 -15 30 30">
+const mutedSVG = `<svg viewBox="-15 -15 30 30">
                       <g stroke="black" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
                           <polygon points="-10,-2 -7,-2 -3,-6 -3,6 -7,2 -10,2" />
                           <g fill="none">

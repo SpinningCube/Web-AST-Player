@@ -29,8 +29,10 @@ body {
     background-color: #00000040;
 }
 
-.volume-control {
-    vertical-align: middle;
+.volume-control-container {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
 }
 
 .track-list {
@@ -38,4 +40,12 @@ body {
     padding-left: 1em;
     margin-top: 0.5em;
     margin-bottom: 0.5em;
+}
+
+.track-list > li {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 2em;
+    margin-bottom: 5px;
 }

@@ -25,15 +25,19 @@
 
         <div class="ast-control-container" style="display: flex; flex-direction: row; gap: 10px">
             <button id="restart" disabled autocomplete="off" class="square-button" style="width: 55px; height: 55px">
-                <svg width="55px" height="55px" viewbox="-200 -200 400 400">
+                <svg viewbox="-200 -200 400 400">
                     <polygon points="-75,0 75,86 75,-86"/>
                     <rect x="-75" y="-86" width="25" height="172"/>
                 </svg>
             </button>
-            <button id="pause-resume" disabled autocomplete="off" class="square-button" style="width: 55px; height: 55px"></button>
-            <div style="display: flex; flex-direction: row; gap: 8px">
+            <button id="pause-resume" disabled autocomplete="off" class="square-button" style="width: 55px; height: 55px">
+                <svg viewbox="-150 -150 300 300">
+                    <polygon points="75,0 -75,86 -75,-86"/>
+                </svg>
+            </button>
+            <div class="volume-control-container">
                 <button id="mute" class="square-button" style="width: 35px; height: 35px; margin: auto">
-                    <svg width="35px" height="35px" viewBox="-15 -15 30 30">
+                    <svg viewBox="-15 -15 30 30">
                         <g stroke="black" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
                             <polygon points="-10,-2 -7,-2 -3,-6 -3,6 -7,2 -10,2"/>
                             <g fill="none">
@@ -44,7 +48,7 @@
                         </g>
                     </svg>
                 </button>
-                <input type="range" id="volume" class="volume-control" min="0" max="1" value="1" step="any"/>
+                <input type="range" id="volume" min="0" max="1" value="1" step="any"/>
             </div>
         </div>
 
