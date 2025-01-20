@@ -224,17 +224,17 @@ export class ASTDecoder {
             return samples;
         }
         
-        const endSample = this.outputSample + numSamples;
+        let endSample = this.outputSample + numSamples;
         while (endSample > this.decoderEndSample) {
             if (!this.nextBlock()) {
                 break;
             }
         }
-        let loopEnd = this.header.loopEnd;
-        if ((this.outputSample <= loopEnd && endSample > loopEnd) || endSample > this.decoderEndSample) {
-            if (endSample <= loopEnd) {
-                loopEnd = this.decoderEndSample;
-            }
+        let loopEnd = Math.min(this.header.loopEnd, this.decoderEndSample);
+        if (this.outputSample === loopEnd || this.outputSample >= this.decoderEndSample) {
+            this.outputSample = (this.header.loopStart < this.decoderEndSample) ? this.header.loopStart : 0;
+            endSample = this.outputSample + numSamples;
+        } else if (this.outputSample < loopEnd && endSample > loopEnd) {
             // If the range contains the loop point, split it into two contiguous ranges
             const samples = this.getSamples(loopEnd - this.outputSample);
             this.outputSample = (this.header.loopStart < this.decoderEndSample) ? this.header.loopStart : 0;
