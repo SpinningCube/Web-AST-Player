@@ -255,6 +255,8 @@ const progress = document.getElementById("progress");
 
 const trackListContainer = document.getElementById("track-list-container");
 
+const errorDisplay = document.getElementById("ast-error-display");
+
 const fileInput = document.getElementById("ast-file-import");
 fileInput.addEventListener("change", openFile);
 
@@ -270,8 +272,21 @@ function openFile(event) {
             player.pause();
             player.audioContext.close();
         }
-        player = new ASTPlayer(reader.result, file.name);
-        player.setVolume(muted ? 0 : volumeInput.value);
+        errorDisplay.innerHTML = "";
+        try {
+            player = new ASTPlayer(reader.result, file.name);
+            player.setVolume(muted ? 0 : volumeInput.value);
+        } catch (error) {
+            const errorMessage = document.createElement("div");
+            errorMessage.classList.add("ast-error-container");
+            errorMessage.textContent = error.message;
+            const errorText = document.createElement("strong");
+            errorText.textContent = "Error: ";
+            errorMessage.prepend(errorText);
+            errorDisplay.appendChild(errorMessage);
+            player = null;
+            console.error("Error: " + error.message);
+        }
     };
     reader.readAsArrayBuffer(file);
 }

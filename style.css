@@ -7,7 +7,12 @@ body {
     margin-bottom: 16px;
 }
 
-.ast-progress-bar {
+.ast-error-container {
+    background-color: #F08888;
+    padding: 10px;
+}
+
+.progress-bar {
     width: 100%;
     margin: 0;
 }
