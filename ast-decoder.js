@@ -108,6 +108,7 @@ export class ASTDecoder {
                     adpcmLastByteWasHeader = true;
                 } else {
                     adpcmLastByteWasHeader = false;
+                    
                     // Upper nibble
                     const sampleValue1 = adpcmDecode(adpcmShift, adpcmFilter, byte >>> 4, adpcmOld, adpcmOlder);
                     this.decodedSamples[channel].push(sampleValue1);
@@ -285,7 +286,7 @@ const adpcmFilterCoefficients = [
     [1024, -1024],
     [-1024, 1024],
     [-1024, 0],
-    [-2048, 0]
+    [-2048, 0],
 ]
 
 /**
@@ -293,8 +294,8 @@ const adpcmFilterCoefficients = [
  * @param {number} shift Shift amount, from the upper 4 bits of the header byte of the current ADPCM block
  * @param {number} filter Selects a row from the filter coefficient table, from the lower 4 bits of the header byte of the current ADPCM block
  * @param {number} nibble 4-bit value taken from the ADPCM block, used to determine the next sample
- * @param {number} old The immediate previous 15-bit decoded sample
- * @param {number} older The next previous 15-bit decoded sample; the one before old
+ * @param {number} old The immediate previous 16-bit decoded sample
+ * @param {number} older The next previous 16-bit decoded sample; the one before old
  * @returns {number} 16-bit decoded sample
  */
 function adpcmDecode(shift, filter, nibble, old, older) {
