@@ -3,12 +3,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AST player</title>
+    <meta name="description" content="Web-based player for AST audio files">
+    <title>AST Player</title>
     <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
     <div style="margin: auto; width: 60%; max-width: 600px">
-        <h1>AST player</h1>
+        <h1>AST Player</h1>
 
         <div class="ast-control-container">
             Select an .ast file to play
@@ -22,21 +23,23 @@
 
         <div class="ast-control-container">
             <input type="range" id="progressbar" min="0" max="1" value="0" disabled autocomplete="off" class="progress-bar"/>
-            <div id="progress">0:00.00 / 0:00.00</div>
+            <div id="progress" style="white-space: nowrap;">0:00.00 / 0:00.00</div>
         </div>
 
-        <div class="ast-control-container" style="display: flex; flex-direction: row; gap: 10px">
-            <button id="restart" disabled autocomplete="off" class="square-button" style="width: 55px; height: 55px">
-                <svg viewbox="-200 -200 400 400">
-                    <polygon points="-75,0 75,86 75,-86"/>
-                    <rect x="-75" y="-86" width="25" height="172"/>
-                </svg>
-            </button>
-            <button id="pause-resume" disabled autocomplete="off" class="square-button" style="width: 55px; height: 55px">
-                <svg viewbox="-150 -150 300 300">
-                    <polygon points="75,0 -75,86 -75,-86"/>
-                </svg>
-            </button>
+        <div class="ast-control-container playback-control-container" style="flex-wrap: wrap; justify-content: space-between;">
+            <div class="playback-control-container">
+                <button id="restart" disabled autocomplete="off" class="square-button" style="width: 55px; height: 55px; flex-shrink: 0;">
+                    <svg viewbox="-200 -200 400 400">
+                        <polygon points="-75,0 75,86 75,-86"/>
+                        <rect x="-75" y="-86" width="25" height="172"/>
+                    </svg>
+                </button>
+                <button id="pause-resume" disabled autocomplete="off" class="square-button" style="width: 55px; height: 55px; flex-shrink: 0;">
+                    <svg viewbox="-150 -150 300 300">
+                        <polygon points="75,0 -75,86 -75,-86"/>
+                    </svg>
+                </button>
+            </div>
             <div class="volume-control-container">
                 <button id="mute" class="square-button" style="width: 35px; height: 35px; margin: auto">
                     <svg viewBox="-15 -15 30 30">
@@ -55,6 +58,16 @@
         </div>
 
         <div id="track-list-container" class="ast-control-container"></div>
+
+        <p>
+            This is a web-based player for AST audio files.
+        </p>
+        <p>
+            AST is a file format for storing audio streams which is
+            used in some games made by Nintendo for the GameCube and Wii,
+            including <cite>The Legend of Zelda: Twilight Princess</cite>,
+            <cite>Super Mario Galaxy</cite>, and <cite>Super Mario Galaxy 2</cite>.
+        </p>
 
         <script src="ast-player.js" type="module"></script>
     </div>

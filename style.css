@@ -2,6 +2,10 @@ body {
     font-family: 'Trebuchet MS', Arial, sans-serif;
 }
 
+p {
+    line-height: 1.35;
+}
+
 .ast-control-container {
     margin-top: 16px;
     margin-bottom: 16px;
@@ -34,6 +38,12 @@ body {
     background-color: #00000040;
 }
 
+.playback-control-container {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
 .volume-control-container {
     display: flex;
     flex-direction: row;
@@ -53,4 +63,5 @@ body {
     align-items: center;
     gap: 2em;
     margin-bottom: 5px;
+    white-space: nowrap;
 }
