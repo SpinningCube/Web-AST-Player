@@ -50,6 +50,11 @@ p {
     gap: 8px;
 }
 
+.volume-field {
+    margin: auto;
+    width: 3em;
+}
+
 .track-list {
     list-style: none;
     padding-left: 1em;

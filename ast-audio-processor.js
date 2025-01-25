@@ -22,7 +22,7 @@ class ASTAudioProcessor extends AudioWorkletProcessor {
                     break;
                 case "set_track_volume":
                     if (message.data.param.trackNum in this.trackVolumes) {
-                        this.trackVolumes[message.data.param.trackNum] = Math.max(0, Math.min(message.data.param.value, 1));
+                        this.trackVolumes[message.data.param.trackNum] = Math.max(-1, Math.min(message.data.param.value, 1));
                     }
                     break;
             }

@@ -81,7 +81,12 @@ class ASTPlayer {
                 trackMuteButton.style.width = "35px";
                 trackMuteButton.style.height = "35px";
                 trackMuteButton.innerHTML = this.tracksMuted[track] ? mutedSVG : unmutedSVG;
-                trackVolumeContainer.appendChild(trackMuteButton);
+
+                const trackVolumeField = document.createElement("input");
+                trackVolumeField.type = "text";
+                trackVolumeField.inputMode = "decimal";
+                trackVolumeField.value = 1;
+                trackVolumeField.classList.add("volume-field");
 
                 const trackVolumeSlider = document.createElement("input");
                 trackVolumeSlider.type = "range";
@@ -89,8 +94,6 @@ class ASTPlayer {
                 trackVolumeSlider.max = 1;
                 trackVolumeSlider.value = 1;
                 trackVolumeSlider.step = "any";
-                trackVolumeSlider.classList.add("volume-control");
-                trackVolumeContainer.appendChild(trackVolumeSlider);
                 
                 const setTrackVolume = (volume) => {
                     this.audioProcessor?.port.postMessage({type: "set_track_volume", param: {trackNum: track, value: volume}});
@@ -98,7 +101,7 @@ class ASTPlayer {
                 trackMuteButton.addEventListener("click", (event) => {
                     if (this.tracksMuted[track]) {
                         this.tracksMuted[track] = false;
-                        setTrackVolume(trackVolumeSlider.value);
+                        setTrackVolume(trackVolumeField.value);
                         trackMuteButton.innerHTML = unmutedSVG;
                     } else {
                         this.tracksMuted[track] = true;
@@ -106,9 +109,21 @@ class ASTPlayer {
                         trackMuteButton.innerHTML = mutedSVG;
                     }
                 })
+                trackVolumeField.addEventListener("input", (event) => {
+                    setTrackVolume(this.tracksMuted[track] ? 0 : +event.target.value || 0);
+                    trackVolumeSlider.value = +event.target.value || 0;
+                });
+                trackVolumeField.addEventListener("focusout", function(event) {
+                    event.target.value = Math.max(-1, Math.min(+event.target.value || 0, 1));
+                })
                 trackVolumeSlider.addEventListener("input", (event) => {
                     setTrackVolume(this.tracksMuted[track] ? 0 : event.target.value);
+                    trackVolumeField.value = event.target.value;
                 });
+
+                trackVolumeContainer.appendChild(trackMuteButton);
+                trackVolumeContainer.appendChild(trackVolumeSlider);
+                trackVolumeContainer.appendChild(trackVolumeField);
                 
                 trackElement.appendChild(trackVolumeContainer);
                 trackList.appendChild(trackElement);
@@ -187,7 +202,7 @@ class ASTPlayer {
     }
 
     setVolume(volume) {
-        this.gainNode.gain.value = volume;
+        this.gainNode.gain.value = Math.max(-1, Math.min(volume, 1));
     }
 }
 
@@ -199,9 +214,18 @@ progressBar.addEventListener("input", function(event) {
     player?.setPosition(event.target.value);
 });
 
-const volumeInput = document.getElementById("volume");
-volumeInput.addEventListener("input", function(event) {
+const volumeField = document.getElementById("volume-field");
+const volumeSlider = document.getElementById("volume-slider");
+volumeField.addEventListener("input", function(event) {
+    player?.setVolume(muted ? 0 : +event.target.value || 0);
+    volumeSlider.value = +event.target.value || 0;
+});
+volumeField.addEventListener("focusout", function(event) {
+    event.target.value = Math.max(-1, Math.min(+event.target.value || 0, 1));
+})
+volumeSlider.addEventListener("input", function(event) {
     player?.setVolume(muted ? 0 : event.target.value);
+    volumeField.value = event.target.value;
 });
 
 const pauseResumeButton = document.getElementById("pause-resume");
@@ -242,7 +266,7 @@ const mutedSVG = `<svg viewBox="-15 -15 30 30">
 muteButton.addEventListener("click", function() {
     if (muted) {
         muted = false;
-        player?.setVolume(volumeInput.value);
+        player?.setVolume(volumeSlider.value);
         muteButton.innerHTML = unmutedSVG;
     } else {
         muted = true;
@@ -275,7 +299,7 @@ function openFile(event) {
         errorDisplay.innerHTML = "";
         try {
             player = new ASTPlayer(reader.result, file.name);
-            player.setVolume(muted ? 0 : volumeInput.value);
+            player.setVolume(muted ? 0 : volumeSlider.value);
         } catch (error) {
             const errorMessage = document.createElement("div");
             errorMessage.classList.add("ast-error-container");
