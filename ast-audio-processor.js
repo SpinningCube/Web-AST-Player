@@ -31,7 +31,7 @@ class ASTAudioProcessor extends AudioWorkletProcessor {
 
     process(inputs, outputs, parameters) {
         let outputLength = outputs[0][0].length;
-        const start = this.astDecoder.getPosition();
+        /*const start = this.astDecoder.getPosition();
         const samples = this.astDecoder.getSamples(outputLength);
         const destination = this.astDecoder.getPosition();
         this.astDecoder.setPosition(start); 
@@ -50,8 +50,8 @@ class ASTAudioProcessor extends AudioWorkletProcessor {
                 outputs[0][channel][sample] = finalSample;
             }
         }
-        this.astDecoder.setPosition(destination);
-        /*for (let sample = 0; sample < outputLength; sample++) {
+        this.astDecoder.setPosition(destination);*/
+        for (let sample = 0; sample < outputLength; sample++) {
             const samples = this.astDecoder.getSample();
             for (let channel = 0; channel < Math.min(2, outputs[0].length); channel++) {
                 let finalSample = 0;
@@ -66,7 +66,7 @@ class ASTAudioProcessor extends AudioWorkletProcessor {
                 }
                 outputs[0][channel][sample] = finalSample;
             }
-        }*/
+        }
         return true;
     }
 }
