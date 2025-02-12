@@ -80,13 +80,23 @@ class ASTPlayer {
                 trackMuteButton.classList.add("square-button");
                 trackMuteButton.style.width = "35px";
                 trackMuteButton.style.height = "35px";
-                trackMuteButton.innerHTML = this.tracksMuted[track] ? mutedSVG : unmutedSVG;
+                if (this.tracksMuted[track]) {
+                    trackMuteButton.innerHTML = mutedSVG;
+                    trackMuteButton.title = "Unmute";
+                    trackMuteButton.ariaLabel = "Unmute Track " + (track + 1);
+                } else {
+                    trackMuteButton.innerHTML = unmutedSVG;
+                    trackMuteButton.title = "Mute";
+                    trackMuteButton.ariaLabel = "Mute Track " + (track + 1);
+                }
 
                 const trackVolumeField = document.createElement("input");
                 trackVolumeField.type = "text";
                 trackVolumeField.inputMode = "decimal";
                 trackVolumeField.value = 1;
                 trackVolumeField.classList.add("volume-field");
+                trackVolumeField.title = "Volume";
+                trackVolumeField.ariaLabel = "Track " + (track + 1) + " Volume";
 
                 const trackVolumeSlider = document.createElement("input");
                 trackVolumeSlider.type = "range";
@@ -94,6 +104,8 @@ class ASTPlayer {
                 trackVolumeSlider.max = 1;
                 trackVolumeSlider.value = 1;
                 trackVolumeSlider.step = "any";
+                trackVolumeSlider.title = "Volume";
+                trackVolumeSlider.ariaLabel = "Track " + (track + 1) + " Volume";
                 
                 const setTrackVolume = (volume) => {
                     this.audioProcessor?.port.postMessage({type: "set_track_volume", param: {trackNum: track, value: volume}});
@@ -103,10 +115,14 @@ class ASTPlayer {
                         this.tracksMuted[track] = false;
                         setTrackVolume(trackVolumeField.value);
                         trackMuteButton.innerHTML = unmutedSVG;
+                        trackMuteButton.title = "Mute";
+                        trackMuteButton.ariaLabel = "Mute Track " + (track + 1);
                     } else {
                         this.tracksMuted[track] = true;
                         setTrackVolume(0);
                         trackMuteButton.innerHTML = mutedSVG;
+                        trackMuteButton.title = "Unmute";
+                        trackMuteButton.ariaLabel = "Unmute Track " + (track + 1);
                     }
                 })
                 trackVolumeField.addEventListener("input", (event) => {
@@ -117,8 +133,9 @@ class ASTPlayer {
                     event.target.value = Math.max(-1, Math.min(+event.target.value || 0, 1));
                 })
                 trackVolumeSlider.addEventListener("input", (event) => {
-                    setTrackVolume(this.tracksMuted[track] ? 0 : event.target.value);
-                    trackVolumeField.value = event.target.value;
+                    trackVolumeSlider.value = Math.round(event.target.value * 1000) / 1000;
+                    setTrackVolume(this.tracksMuted[track] ? 0 : trackVolumeSlider.value);
+                    trackVolumeField.value = trackVolumeSlider.value;
                 });
 
                 trackVolumeContainer.appendChild(trackMuteButton);
@@ -146,6 +163,8 @@ class ASTPlayer {
         this.audioContext.resume();
         pauseResumeButton.innerHTML = pauseSVG;
         pauseResumeButton.onclick = () => this.pause();
+        pauseResumeButton.title = "Pause";
+        pauseResumeButton.ariaLabel = "Pause";
         audioElement.play();
         if ("mediaSession" in navigator) {
             navigator.mediaSession.playbackState = "playing";
@@ -156,6 +175,8 @@ class ASTPlayer {
         this.audioContext.suspend();
         pauseResumeButton.innerHTML = resumeSVG;
         pauseResumeButton.onclick = () => this.play();
+        pauseResumeButton.title = "Resume";
+        pauseResumeButton.ariaLabel = "Resume";
         audioElement.pause();
         if ("mediaSession" in navigator) {
             navigator.mediaSession.playbackState = "paused";
@@ -189,8 +210,12 @@ class ASTPlayer {
         const seconds = this.sample / this.astHeader.sampleRate;
         const totalSeconds = this.astHeader.numSamples / this.astHeader.sampleRate;
         const totalMinutesString = String(Math.floor(totalSeconds / 60));
-        progress.textContent = String(Math.floor(seconds / 60)).padStart(totalMinutesString.length, '0') + ":" + String(Math.floor(seconds % 60)).padStart(2, '0') + "." + String(Math.floor((seconds % 1) * 100)).padStart(2, '0');
-        progress.textContent += " / " + totalMinutesString + ":" + String(Math.floor(totalSeconds % 60)).padStart(2, '0') + "." + String(Math.floor((totalSeconds % 1) * 100)).padStart(2, '0');
+        progress.textContent = String(Math.floor(seconds / 60)).padStart(totalMinutesString.length, '0') + ":" + String(Math.floor(seconds % 60)).padStart(2, '0');
+        progressBar.ariaValueText = progress.textContent;
+        progress.textContent += "." + String(Math.floor((seconds % 1) * 100)).padStart(2, '0');
+        const totalMinutesSeconds = totalMinutesString + ":" + String(Math.floor(totalSeconds % 60)).padStart(2, '0');
+        progress.textContent += " / " + totalMinutesSeconds + "." + String(Math.floor((totalSeconds % 1) * 100)).padStart(2, '0');
+        progressBar.ariaValueText += " of " + totalMinutesSeconds;
         
         if ("mediaSession" in navigator) {
             navigator.mediaSession.setPositionState({
@@ -224,8 +249,9 @@ volumeField.addEventListener("focusout", function(event) {
     event.target.value = Math.max(-1, Math.min(+event.target.value || 0, 1));
 })
 volumeSlider.addEventListener("input", function(event) {
-    player?.setVolume(muted ? 0 : event.target.value);
-    volumeField.value = event.target.value;
+    volumeSlider.value = Math.round(event.target.value * 1000) / 1000;
+    player?.setVolume(muted ? 0 : volumeSlider.value);
+    volumeField.value = volumeSlider.value;
 });
 
 const pauseResumeButton = document.getElementById("pause-resume");
@@ -268,10 +294,14 @@ muteButton.addEventListener("click", function() {
         muted = false;
         player?.setVolume(volumeSlider.value);
         muteButton.innerHTML = unmutedSVG;
+        muteButton.title = "Mute";
+        muteButton.ariaLabel = "Mute";
     } else {
         muted = true;
         player?.setVolume(0);
         muteButton.innerHTML = mutedSVG;
+        muteButton.title = "Unmute";
+        muteButton.ariaLabel = "Unmute";
     }
 });
 

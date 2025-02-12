@@ -16,32 +16,32 @@
         </div>
 
         <div class="ast-control-container">
-            <input type="file" id="ast-file-import" autocomplete="off" accept=".ast">
+            <input type="file" id="ast-file-import" title="AST File Select" aria-label="AST File Select" autocomplete="off" accept=".ast">
         </div>
 
         <div class="ast-control-container" id="ast-error-display"></div>
 
         <div class="ast-control-container">
-            <input type="range" id="progressbar" min="0" max="1" value="0" disabled autocomplete="off" class="progress-bar"/>
+            <input type="range" id="progressbar" title="Progress" aria-label="Progress" min="0" max="1" value="0" disabled autocomplete="off" class="progress-bar"/>
             <div id="progress" style="white-space: nowrap;">0:00.00 / 0:00.00</div>
         </div>
 
         <div class="ast-control-container playback-control-container" style="flex-wrap: wrap; justify-content: space-between;">
             <div class="playback-control-container">
-                <button id="restart" disabled autocomplete="off" class="square-button" style="width: 55px; height: 55px; flex-shrink: 0;">
+                <button id="restart" disabled title="Restart" aria-label="Restart" autocomplete="off" class="square-button" style="width: 55px; height: 55px; flex-shrink: 0;">
                     <svg viewbox="-200 -200 400 400">
                         <polygon points="-75,0 75,86 75,-86"/>
                         <rect x="-75" y="-86" width="25" height="172"/>
                     </svg>
                 </button>
-                <button id="pause-resume" disabled autocomplete="off" class="square-button" style="width: 55px; height: 55px; flex-shrink: 0;">
+                <button id="pause-resume" disabled title="Resume" aria-label="Resume" autocomplete="off" class="square-button" style="width: 55px; height: 55px; flex-shrink: 0;">
                     <svg viewbox="-150 -150 300 300">
                         <polygon points="75,0 -75,86 -75,-86"/>
                     </svg>
                 </button>
             </div>
             <div class="volume-control-container">
-                <button id="mute" class="square-button" style="width: 35px; height: 35px; margin: auto">
+                <button id="mute" title="Mute" aria-label="Mute" class="square-button" style="width: 35px; height: 35px; margin: auto">
                     <svg viewBox="-15 -15 30 30">
                         <g stroke="black" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
                             <polygon points="-10,-2 -7,-2 -3,-6 -3,6 -7,2 -10,2"/>
@@ -53,8 +53,8 @@
                         </g>
                     </svg>
                 </button>
-                <input type="range" id="volume-slider" min="0" max="1" value="1" step="any"/>
-                <input type="text" id="volume-field" inputmode="decimal" value="1" class="volume-field"/>
+                <input type="range" id="volume-slider" title="Volume" aria-label="Volume" min="0" max="1" value="1" step="any"/>
+                <input type="text" id="volume-field" title="Volume" aria-label="Volume" inputmode="decimal" value="1" class="volume-field"/>
             </div>
         </div>
 

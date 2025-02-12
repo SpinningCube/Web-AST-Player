@@ -38,6 +38,10 @@ p {
     background-color: #00000040;
 }
 
+.square-button:focus-visible {
+    outline: revert;
+}
+
 .playback-control-container {
     display: flex;
     flex-direction: row;
