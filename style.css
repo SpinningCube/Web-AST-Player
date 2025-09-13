@@ -1,5 +1,11 @@
+:root {
+    --content-color: light-dark(black, white);
+}
+
 body {
     font-family: 'Trebuchet MS', Arial, sans-serif;
+    color: var(--content-color);
+    background-color: light-dark(white, #222);
 }
 
 p {
@@ -12,8 +18,9 @@ p {
 }
 
 .ast-error-container {
-    background-color: #F08888;
+    background-color: light-dark(#FF9090, #C33333);
     padding: 10px;
+    border-radius: 4px;
 }
 
 .progress-bar {
@@ -24,6 +31,8 @@ p {
 .square-button {
     all: initial;
     border-radius: 10%;
+    fill: var(--content-color);
+    stroke: var(--content-color);
 }
 
 .square-button:disabled {
@@ -31,11 +40,11 @@ p {
 }
 
 .square-button:enabled:hover {
-    background-color: #00000020;
+    background-color: light-dark(#00000020, #FFFFFF20);
 }
 
 .square-button:enabled:active {
-    background-color: #00000040;
+    background-color: light-dark(#00000040, #FFFFFF40);
 }
 
 .square-button:focus-visible {

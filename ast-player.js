@@ -77,6 +77,7 @@ class ASTPlayer {
                 trackVolumeContainer.classList.add("volume-control-container");
                 
                 const trackMuteButton = document.createElement("button");
+                trackMuteButton.type = "button";
                 trackMuteButton.classList.add("square-button");
                 trackMuteButton.style.width = "35px";
                 trackMuteButton.style.height = "35px";
@@ -267,7 +268,7 @@ const restartButton = document.getElementById("restart");
 
 const muteButton = document.getElementById("mute");
 const unmutedSVG = `<svg viewBox="-15 -15 30 30">
-                        <g stroke="black" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
+                        <g stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
                             <polygon points="-10,-2 -7,-2 -3,-6 -3,6 -7,2 -10,2" />
                             <g fill="none">
                                 <path d=" M 0.8 -3.55 A 6 6 0 0 1 0.8 3.55" />
@@ -277,7 +278,7 @@ const unmutedSVG = `<svg viewBox="-15 -15 30 30">
                         </g>
                     </svg>`;
 const mutedSVG = `<svg viewBox="-15 -15 30 30">
-                      <g stroke="black" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
+                      <g stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
                           <polygon points="-10,-2 -7,-2 -3,-6 -3,6 -7,2 -10,2" />
                           <g fill="none">
                                 <path d=" M 0.8 -3.55 A 6 6 0 0 1 0.8 3.55" />

@@ -4,11 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Web-based player for AST audio files">
+    <meta name="color-scheme" content="light dark" />
     <title>AST Player</title>
     <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-    <div style="margin: auto; width: 60%; max-width: 600px; min-width: 310px;">
+    <div style="margin: 0 auto; width: 600px; max-width: 90%; min-width: 310px;">
         <h1>AST Player</h1>
 
         <div class="ast-control-container">
@@ -28,22 +29,22 @@
 
         <div class="ast-control-container playback-control-container" style="flex-wrap: wrap; justify-content: space-between;">
             <div class="playback-control-container">
-                <button id="restart" disabled title="Restart" aria-label="Restart" autocomplete="off" class="square-button" style="width: 55px; height: 55px; flex-shrink: 0;">
+                <button id="restart" type="button" disabled title="Restart" aria-label="Restart" autocomplete="off" class="square-button" style="width: 55px; height: 55px; flex-shrink: 0;">
                     <svg viewbox="-200 -200 400 400">
                         <polygon points="-75,0 75,86 75,-86"/>
                         <rect x="-75" y="-86" width="25" height="172"/>
                     </svg>
                 </button>
-                <button id="pause-resume" disabled title="Resume" aria-label="Resume" autocomplete="off" class="square-button" style="width: 55px; height: 55px; flex-shrink: 0;">
+                <button id="pause-resume" type="button" disabled title="Resume" aria-label="Resume" autocomplete="off" class="square-button" style="width: 55px; height: 55px; flex-shrink: 0;">
                     <svg viewbox="-150 -150 300 300">
                         <polygon points="75,0 -75,86 -75,-86"/>
                     </svg>
                 </button>
             </div>
             <div class="volume-control-container">
-                <button id="mute" title="Mute" aria-label="Mute" class="square-button" style="width: 35px; height: 35px; margin: auto">
+                <button id="mute" type="button" title="Mute" aria-label="Mute" class="square-button" style="width: 35px; height: 35px; margin: auto">
                     <svg viewBox="-15 -15 30 30">
-                        <g stroke="black" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
+                        <g stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
                             <polygon points="-10,-2 -7,-2 -3,-6 -3,6 -7,2 -10,2"/>
                             <g fill="none">
                                 <path d=" M 0.8 -3.55 A 6 6 0 0 1 0.8 3.55"/>
