@@ -156,7 +156,9 @@ class ASTPlayer {
         console.log("Sample rate: " + this.astHeader.sampleRate);
         console.log("Number of channels: " + this.astHeader.numChannels);
 
-        this.play();
+        // Attempt to resume the audio context, and if successful, reflect this in the UI.
+        this.pause();
+        this.audioContext.resume().then(() => this.play());
         this.displayPosition();
     }
 
