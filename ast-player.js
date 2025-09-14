@@ -325,13 +325,14 @@ function openFile(event) {
     const file = fileList[0];
     const reader = new FileReader();
     reader.onload = function() {
-        if (player != null) {
-            player.pause();
-            player.audioContext.close();
-        }
         errorDisplay.innerHTML = "";
         try {
-            player = new ASTPlayer(reader.result, file.name);
+            const newPlayer = new ASTPlayer(reader.result, file.name);
+            if (player != null) {
+                player.pause();
+                player.audioContext.close();
+            }
+            player = newPlayer;
             player.setVolume(muted ? 0 : volumeSlider.value);
         } catch (error) {
             const errorMessage = document.createElement("div");
@@ -341,7 +342,6 @@ function openFile(event) {
             errorText.textContent = "Error: ";
             errorMessage.prepend(errorText);
             errorDisplay.appendChild(errorMessage);
-            player = null;
             console.error("Error: " + error.message);
         }
     };
