@@ -9,26 +9,34 @@ export class ASTHeader {
             throw new Error("File data is not in AST format; not enough file data to fit entire AST header and beginning of first BLCK chunk");
         }
 
-        // "STRM" = 0x5354524D
-        if (!(astData[0] === 0x53 && astData[1] === 0x54 && astData[2] === 0x52 && astData[3] === 0x4D)) {
+        // Read file magic number
+        let magic = readBE(astData, 0, 4);
+        if (magic === 0x5354524D) {
+            // 0x5354524D = "STRM" -> big-endian AST
+            this.read = readBE;
+        } else if (magic === 0x4D525453) {
+            // 0x4D525453 = "MRTS" -> little-endian AST
+            this.read = readLE;
+        } else {
             throw new Error("File data is not in AST format; missing \"STRM\" magic number");
         }
-        this.dataSize = readBE(astData, 4, 4);
+
+        this.dataSize = this.read(astData, 4, 4);
         this.audioFormat = readBE(astData, 8, 2); // 0 = ADPCM, 1 = PCM16
         if (this.audioFormat > 1) {
             throw new Error("Unrecognized audio format; this decoder only recognizes formats 0 = ADPCM, 1 = PCM16, but this file uses format " + this.audioFormat);
         }
-        this.bitsPerSample = readBE(astData, 10, 2);
-        this.numChannels = readBE(astData, 12, 2);
+        this.bitsPerSample = this.read(astData, 10, 2);
+        this.numChannels = this.read(astData, 12, 2);
         if (this.numChannels === 0) {
             throw new Error("Number of audio channels cannot be 0");
         }
         this.unknown1 = readBE(astData, 14, 2);
-        this.sampleRate = readBE(astData, 16, 4);
-        this.numSamples = readBE(astData, 20, 4);
-        this.loopStart = readBE(astData, 24, 4);
-        this.loopEnd = readBE(astData, 28, 4);
-        this.firstChunkSize = readBE(astData, 32, 4);
+        this.sampleRate = this.read(astData, 16, 4);
+        this.numSamples = this.read(astData, 20, 4);
+        this.loopStart = this.read(astData, 24, 4);
+        this.loopEnd = this.read(astData, 28, 4);
+        this.firstChunkSize = this.read(astData, 32, 4);
         this.unknown2 = readBE(astData, 36, 4);
         this.unknown3 = readBE(astData, 40, 4);
     }
@@ -45,6 +53,7 @@ export class ASTDecoder {
 
         // Main header
         this.header = new ASTHeader(astData);
+        this.read = this.header.read;
 
         // Set up decoder
         this.decodedSamples = Array(this.header.numChannels);
@@ -81,13 +90,13 @@ export class ASTDecoder {
             return false;
         }
         // "BLCK" = 0x424C434B
-        if (!(this.astData[i] === 0x42 && this.astData[i + 1] === 0x4C && this.astData[i + 2] === 0x43 && this.astData[i + 3] === 0x4B)) {
+        if (!(this.read(this.astData, i, 4) === 0x424C434B)) {
             this.decoderError("Missing \"BLCK\" magic number where BLCK chunk " + this.numChunks + " is expected to start. Remaining bytes will be ignored.");
             this.decoderFinished = true;
             return false;
         }
         i += 4;
-        const blockSize = readBE(this.astData, i, 4);
+        const blockSize = this.read(this.astData, i, 4);
         i += 28;
         const chunkStart = i;
         let iter;
@@ -265,6 +274,22 @@ function readBE(array, start, numBytes) {
     const end = start + numBytes;
     let value = 0;
     for (let i = start; i < end; i++) {
+        value = (value << 8) + array[i];
+    }
+    return value;
+}
+
+/**
+ * Read little-endian value from byte array starting at position
+ * @param {number[]} array source array of bytes
+ * @param {number} start index of first byte (the least significant byte in the resulting value)
+ * @param {number} numBytes number of bytes to read
+ * @returns {number} combined value
+ */
+function readLE(array, start, numBytes) {
+    const end = start + numBytes;
+    let value = 0;
+    for (let i = end - 1; i >= start; i--) {
         value = (value << 8) + array[i];
     }
     return value;

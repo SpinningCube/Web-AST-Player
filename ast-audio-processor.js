@@ -7,7 +7,7 @@ class ASTAudioProcessor extends AudioWorkletProcessor {
     constructor(options) {
         super();
         this.astDecoder = new ASTDecoder(options.processorOptions.astData);
-        this.numTracks = Math.floor(this.astDecoder.header.numChannels * 0.5);
+        this.numTracks = Math.ceil(this.astDecoder.header.numChannels * 0.5);
         this.trackVolumes = Array(this.numTracks).fill(0);
         this.trackVolumes[0] = 1;
 
@@ -57,7 +57,7 @@ class ASTAudioProcessor extends AudioWorkletProcessor {
                 let finalSample = 0;
                 for (let track = 0; track < this.numTracks; track++) {
                     // Convert from 16-bit signed int to the -1 to 1 floating point range.
-                    let sampleValue = samples[2 * track + channel] / 32767;
+                    let sampleValue = samples[Math.min(2 * track + channel, samples.length - 1)] / 32767;
     
                     // Can't be too careful
                     sampleValue = Math.max(-1, Math.min(sampleValue, 1));
