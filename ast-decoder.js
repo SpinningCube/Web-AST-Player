@@ -276,7 +276,7 @@ function readBE(array, start, numBytes) {
     for (let i = start; i < end; i++) {
         value = (value << 8) + array[i];
     }
-    return value;
+    return value >>> 0;
 }
 
 /**
@@ -292,7 +292,7 @@ function readLE(array, start, numBytes) {
     for (let i = end - 1; i >= start; i--) {
         value = (value << 8) + array[i];
     }
-    return value;
+    return value >>> 0;
 }
 
 const adpcmFilterCoefficients = [
