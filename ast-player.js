@@ -290,7 +290,6 @@ const mutedSVG = `<svg viewBox="-15 -15 30 30">
                           <line x1="-10" y1="7" x2="10" y2="-7" />
                       </g>
                   </svg>`;
-// <line x1="-13" y1="-8" x2="3" y2="8" />
 
 muteButton.addEventListener("click", function() {
     if (muted) {
