@@ -236,6 +236,7 @@ class ASTPlayer {
 
 let muted = false;
 let player = null;
+globalThis.player = null;
 
 const progressBar = document.getElementById("progressbar");
 progressBar.addEventListener("input", function(event) {
@@ -332,6 +333,7 @@ function openFile(event) {
                 player.audioContext.close();
             }
             player = newPlayer;
+            globalThis.player = player;
             player.setVolume(muted ? 0 : volumeSlider.value);
         } catch (error) {
             const errorMessage = document.createElement("div");
